@@ -1,4 +1,4 @@
-package firstSample
+package firstSample.hello
 
 import akka.typed.Behavior
 import akka.typed.scaladsl.Actor
@@ -6,10 +6,11 @@ import akka.typed.scaladsl.Actor
 object WokerHelloAkka {
 
   sealed trait Command
-  case class HelloMsg(message: String) extends Command
-  case class CountMsg(message: Int) extends Command
+  final case class HelloMsg(message: String) extends Command
+  final case class CountMsg(message: Int) extends Command
 
-  def init(): Behavior[WokerHelloAkka.Command] =
+//  def init(): Behavior[WokerHelloAkka.Command] =
+  val initBehavior: Behavior[WokerHelloAkka.Command] =
     Actor.immutable[Command] { (ctx, msg) =>
       msg match {
         case HelloMsg(msgTxt) =>
