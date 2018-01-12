@@ -1,4 +1,4 @@
-package com.familyDependence
+package com.familyDep
 
 import akka.actor.{Actor, Props}
 

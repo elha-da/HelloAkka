@@ -1,9 +1,9 @@
 
 import akka.actor.{ActorSystem, Props}
 import akka.typed.{ActorRef, Behavior}
-import com.familyDependence.Family.Parent
-import com.familyDependence.FamilyDep.{Child, Parent}
-import com.familyDependence.FamilyDep.Parent.pingMsgParent
+import com.familyDep.Family.Parent
+import com.familyDep.FamilyDep.{Child, Parent}
+import com.familyDep.FamilyDep.Parent.pingMsgParent
 import firstSample.hello.WokerHelloAkka
 import firstSample.hello.WokerHelloAkka._
 import pingPong.unTypeToType._

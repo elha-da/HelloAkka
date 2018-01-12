@@ -1,8 +1,8 @@
-package com.familyDependence.FamilyDep
+package com.familyDep.FamilyDep
 
 import akka.typed.{ActorRef, Behavior}
 import akka.typed.scaladsl.Actor
-import com.familyDependence.FamilyDep.Child._
+import com.familyDep.FamilyDep.Child._
 
 
 object Parent {
@@ -12,7 +12,8 @@ object Parent {
   final case class pongMsgParent(message: Int) extends Command
   final case class pongItParent(message: Boolean) extends Command
 
-  def startP(child: ActorRef[Child.Command]): Behavior[Parent.Command] =
+  def startP(child: ActorRef[Child.Command])
+  : Behavior[Parent.Command] =
     Actor.immutable[Command] { (context, msg) =>
       msg match {
         case pingMsgParent(msgString) =>
