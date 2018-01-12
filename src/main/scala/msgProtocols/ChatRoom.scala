@@ -20,7 +20,7 @@ object ChatRoom {
 
   final case class PostMessage(message: String)
 
-  val behavior: Behavior[Command] = chatRoom(List.empty)
+  val behaviorChatRoom: Behavior[Command] = chatRoom(List.empty)
 
   private def chatRoom(sessions: List[ActorRef[SessionEvent]])
   : Behavior[Command] =
@@ -39,4 +39,30 @@ object ChatRoom {
           Actor.same
       }
     }
+
+  val gabbler =
+//  : Behavior[SessionEvent]  =
+    Actor.immutable[SessionEvent] { (_, msg) =>
+      msg match {
+        case SessionDenied(reason) =>
+          println(s"cannot start chat room session: $reason")
+          Actor.stopped
+        case SessionGranted(handle) =>
+          handle ! PostMessage("Hello World!")
+          Actor.same
+        case MessagePosted(screenName, message) =>
+          println(s"message has been posted by '$screenName': $message")
+          Actor.stopped
+      }
+    }
+
+  val root: Behavior[akka.NotUsed] =
+    Actor.deferred { ctx ⇒
+      val chatRoom: ActorRef[Command] = ctx.spawn(ChatRoom.behaviorChatRoom, "chatroom")
+      val gabblerRef: ActorRef[SessionEvent] = ctx.spawn(gabbler, "gabbler")
+      chatRoom ! GetSession("ol’ Gabbler", gabblerRef)
+
+      Actor.empty
+    }
+
 }
