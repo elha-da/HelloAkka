@@ -9,6 +9,8 @@ import firstSample.hello.WokerHelloAkka._
 import pingPong.unTypeToType._
 import pingPong.typeToUnType._
 import roundRobin.ImmutableRoundRobin
+import com.msgProtocols.ChatRoom
+import com.msgProtocols.ChatRoom._
 
 object Main extends App {
 
@@ -17,8 +19,8 @@ object Main extends App {
   implicit val actorSystem: ActorSystem =
       ActorSystem("hello-World")
 
-  val workerHelloAkka: ActorRef[WokerHelloAkka.Command] =
-      actorSystem.spawn(WokerHelloAkka.initBehavior, "worker-HelloAkka")
+//  val workerHelloAkka: ActorRef[WokerHelloAkka.Command] =
+//      actorSystem.spawn(WokerHelloAkka.initBehavior, "worker-HelloAkka")
 
 //  workerHelloAkka.tell(HelloMsg("akka \" tell \""))
 //  workerHelloAkka ! HelloMsg("akka \" ! \"")
@@ -38,9 +40,14 @@ object Main extends App {
 //  val parent = actorSystem.actorOf(Props[Parent](), "child2")
 //  parent ! "pingit"
 
+/*
   val childDep = actorSystem.spawn(Child.startC, "child2")
   val parentDep = actorSystem.spawn(Parent.startP(childDep), "parent2")
   parentDep ! pingMsgParent("string")
+*/
+
+  val actChatRoom = actorSystem.spawn(ChatRoom.root, "ChatRoom")
+
 
 
   //shutdown actorsystem
