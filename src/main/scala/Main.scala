@@ -1,6 +1,7 @@
 
 import akka.actor.{ActorSystem, Props}
 import akka.typed.{ActorRef, Behavior}
+
 import com.familyDep.Family.Parent
 import com.familyDep.FamilyDep.{Child, Parent}
 import com.familyDep.FamilyDep.Parent.pingMsgParent
@@ -46,7 +47,8 @@ object Main extends App {
   parentDep ! pingMsgParent("string")
 */
 
-  val actChatRoom = actorSystem.spawn(ChatRoom.root, "ChatRoom")
+//  val actChatRoom = actorSystem.spawn(ChatRoom.root, "chat-RoOm")
+  val actChatRoom = actorSystem.spawn(ChatRoom.main, "ChatRoomDemo")
 
 
 
