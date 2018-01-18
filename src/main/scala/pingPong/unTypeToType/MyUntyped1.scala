@@ -1,8 +1,8 @@
 package pingPong.unTypeToType
 
 import akka.actor.{Actor, Props, Terminated}
-import akka.typed.ActorRef
-import akka.typed.scaladsl.adapter._
+import akka.actor.typed.ActorRef
+import akka.actor.typed.scaladsl.adapter._
 
 object MyUntyped1 {
   def myProps(): Props = Props(new MyUntyped1)
@@ -18,7 +18,7 @@ class MyUntyped1 extends Actor {
 
   // self can be used as the `replyTo` parameter here because
   // there is an implicit conversion from akka.actor.ActorRef to
-  // akka.typed.ActorRef
+  // akka.actor.typed.ActorRef
   second ! MyTyped1.Ping(self)
 
   override def receive = {

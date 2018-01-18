@@ -1,7 +1,8 @@
 package com.familyDep.FamilyDep
 
-import akka.typed.{ActorRef, Behavior}
-import akka.typed.scaladsl.Actor
+import akka.actor.typed._
+//{ActorRef, Behavior}
+import akka.actor.typed.scaladsl.Actor
 import com.familyDep.FamilyDep.Child._
 
 
@@ -18,14 +19,12 @@ object Parent {
       msg match {
         case pingMsgParent(msgString) =>
           context.system.log.info(s"Parent - pingit: $msgString")
-//          val act = pingMsgChild("ping")
           child ! pingMsgChild("ping")
           Actor.same
 
         case pongMsgParent(msgInt) =>
           context.system.log.info(s"Parent - pong: $msgInt")
           val ponged = true
-//        println(ponged)
           context.self ! pongItParent(ponged)
           Actor.same
 

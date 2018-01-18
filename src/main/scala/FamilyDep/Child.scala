@@ -1,7 +1,7 @@
 package com.familyDep.FamilyDep
 
-import akka.typed.{ActorRef, Behavior}
-import akka.typed.scaladsl.Actor
+import akka.actor.typed.{ActorRef, Behavior}
+import akka.actor.typed.scaladsl.Actor
 
 import com.familyDep.FamilyDep.Parent._
 

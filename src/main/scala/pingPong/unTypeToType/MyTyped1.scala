@@ -1,7 +1,7 @@
 package pingPong.unTypeToType
 
-import akka.typed.{Behavior, ActorRef}
-import akka.typed.scaladsl.Actor
+import akka.actor.typed.{Behavior, ActorRef}
+import akka.actor.typed.scaladsl.Actor
 
 
 object MyTyped1 {

@@ -52,9 +52,12 @@ class MySpec() extends TestKit(ActorSystem("MySpec"))
 
   "A TestProbe serving as parent Actor" should {
       "test its child responses 2" in {
+        val child = TestProbe()
         val parent = system.actorOf(Props[Parent](), "child2")
-        parent ! "pingit"
-        expectMsg(5.second,"ping")
+//        parent ! "pingit"
+//        expectMsg(5.second,"ping")
+        child.send(parent, "pingit")
+        child.expectMsg(5.second, "ping")
       }
     }
 

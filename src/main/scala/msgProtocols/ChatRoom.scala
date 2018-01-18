@@ -1,7 +1,7 @@
 package com.msgProtocols
 
-import akka.typed.{ActorRef, Behavior, Terminated}
-import akka.typed.scaladsl.Actor
+import akka.actor.typed.{ActorRef, Behavior, Terminated}
+import akka.actor.typed.scaladsl.Actor
 
 object ChatRoom {
   sealed trait Command

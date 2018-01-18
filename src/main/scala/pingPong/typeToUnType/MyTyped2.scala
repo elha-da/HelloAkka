@@ -1,15 +1,15 @@
 package pingPong.typeToUnType
 
 import akka.actor.ActorRef
-import akka.typed.{Behavior}
-import akka.typed.scaladsl.adapter._
-import akka.typed.scaladsl.Actor
+import akka.actor.typed.{Behavior}
+import akka.actor.typed.scaladsl.adapter._
+import akka.actor.typed.scaladsl.Actor
 
 object MyTyped2 {
   sealed trait Command
   case object Pong extends Command
 
-  final case class Ping(replyTo: akka.typed.ActorRef[Pong.type])
+  final case class Ping(replyTo: akka.actor.typed.ActorRef[Pong.type])
 
 //  val behaviorTyped: Behavior[Command] =
   def behaviorTyped(): Behavior[Command] =
@@ -33,7 +33,7 @@ object MyTyped2 {
             Actor.same
         }
       } onSignal {
-        case (ctx, akka.typed.Terminated(ref)) =>
+        case (ctx, akka.actor.typed.Terminated(ref)) =>
           println(s"${ctx.self} observed termination of $ref")
           Actor.stopped
       }

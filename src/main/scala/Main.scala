@@ -1,6 +1,6 @@
 
 import akka.actor.{ActorSystem, Props}
-import akka.typed.{ActorRef, Behavior}
+import akka.actor.typed.{ActorRef, Behavior}
 
 import com.familyDep.Family.Parent
 import com.familyDep.FamilyDep.{Child, Parent}
@@ -15,7 +15,7 @@ import com.msgProtocols.ChatRoom._
 
 object Main extends App {
 
-  import akka.typed.scaladsl.adapter._
+  import akka.actor.typed.scaladsl.adapter._
 
   implicit val actorSystem: ActorSystem =
       ActorSystem("hello-World")
@@ -44,7 +44,7 @@ object Main extends App {
 /*
   val childDep = actorSystem.spawn(Child.startC, "child2")
   val parentDep = actorSystem.spawn(Parent.startP(childDep), "parent2")
-  parentDep ! pingMsgParent("string")
+  parentDep ! pingMsgParent("toto")
 */
 
 //  val actChatRoom = actorSystem.spawn(ChatRoom.root, "chat-RoOm")

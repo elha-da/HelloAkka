@@ -1,7 +1,7 @@
 package firstSample.hello
 
-import akka.typed.Behavior
-import akka.typed.scaladsl.Actor
+import akka.actor.typed.Behavior
+import akka.actor.typed.scaladsl.Actor
 
 object WokerHelloAkka {
 
