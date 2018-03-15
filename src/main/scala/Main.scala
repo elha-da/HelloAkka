@@ -1,17 +1,21 @@
 
+import akka.actor
+import akka.actor.typed.receptionist.Receptionist.{Find, Register}
 import akka.actor.{ActorSystem, Props}
 import akka.actor.typed.{ActorRef, Behavior}
-
+import akka.actor.typed.receptionist.{Receptionist, ServiceKey}
 import com.familyDep.Family.Parent
 import com.familyDep.FamilyDep.{Child, Parent}
 import com.familyDep.FamilyDep.Parent.pingMsgParent
 import firstSample.hello.WokerHelloAkka
 import firstSample.hello.WokerHelloAkka._
-import pingPong.unTypeToType._
-import pingPong.typeToUnType._
+import com.pingPong.unTypeToType._
+import com.pingPong.typeToUnType._
 import roundRobin.ImmutableRoundRobin
 import com.msgProtocols.ChatRoom
 import com.msgProtocols.ChatRoom._
+import pingPong.withReceptionist.First._
+import pingPong.withReceptionist.{Guardian, First, Second}
 
 object Main extends App {
 
@@ -41,16 +45,17 @@ object Main extends App {
 //  val parent = actorSystem.actorOf(Props[Parent](), "child2")
 //  parent ! "pingit"
 
-/*
-  val childDep = actorSystem.spawn(Child.startC, "child2")
-  val parentDep = actorSystem.spawn(Parent.startP(childDep), "parent2")
+//  val childDep = actorSystem.spawn(Child.init, "child2")
+//  val parentDep = actorSystem.spawn(Parent.init(childDep), "parent2")
+
+  val parentDep = actorSystem.spawn(Parent.init, "parent2")
   parentDep ! pingMsgParent("toto")
-*/
 
 //  val actChatRoom = actorSystem.spawn(ChatRoom.root, "chat-RoOm")
-  val actChatRoom = actorSystem.spawn(ChatRoom.main, "ChatRoomDemo")
+//  val actChatRoom = actorSystem.spawn(ChatRoom.main, "ChatRoomDemo")
 
 
+//  val actGuardian = actorSystem.spawn(Guardian.guardian(), "guardian-Test")
 
   //shutdown actorsystem
 //  actorSystem.terminate()

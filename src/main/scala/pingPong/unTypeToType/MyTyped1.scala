@@ -1,7 +1,7 @@
-package pingPong.unTypeToType
+package com.pingPong.unTypeToType
 
-import akka.actor.typed.{Behavior, ActorRef}
-import akka.actor.typed.scaladsl.Actor
+import akka.actor.typed.{ActorRef, Behavior}
+import akka.actor.typed.scaladsl.Behaviors
 
 
 object MyTyped1 {
@@ -11,12 +11,12 @@ object MyTyped1 {
   case object Pong
 
   val behavior: Behavior[Command] =
-    Actor.immutable { (ctx, msg) =>
+    Behaviors.immutable { (ctx, msg) =>
       msg match {
         case Ping(replyTo) =>
           println(s"${ctx.self} got Ping from $replyTo")
           replyTo ! Pong
-          Actor.same
+          Behaviors.same
       }
     }
 }

@@ -1,4 +1,4 @@
-package pingPong.unTypeToType
+package com.pingPong.unTypeToType
 
 import akka.actor.{Actor, Props, Terminated}
 import akka.actor.typed.ActorRef
@@ -17,8 +17,8 @@ class MyUntyped1 extends Actor {
   context.watch(second)
 
   // self can be used as the `replyTo` parameter here because
-  // there is an implicit conversion from akka.actor.ActorRef to
-  // akka.actor.typed.ActorRef
+  // there is an implicit conversion from akka.Behaviors.ActorRef to
+  // akka.Behaviors.typed.ActorRef
   second ! MyTyped1.Ping(self)
 
   override def receive = {

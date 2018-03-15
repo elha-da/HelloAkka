@@ -1,7 +1,7 @@
 package firstSample.hello
 
 import akka.actor.typed.Behavior
-import akka.actor.typed.scaladsl.Actor
+import akka.actor.typed.scaladsl.Behaviors
 
 object WokerHelloAkka {
 
@@ -11,17 +11,17 @@ object WokerHelloAkka {
 
 //  def init(): Behavior[WokerHelloAkka.Command] =
   val initBehavior: Behavior[WokerHelloAkka.Command] =
-    Actor.immutable[Command] { (ctx, msg) =>
+    Behaviors.immutable[Command] { (ctx, msg) =>
       msg match {
         case HelloMsg(msgTxt) =>
           ctx.system.log.info("Print new message String ")
           println(s"Hello $msgTxt")
-          Actor.same
+          Behaviors.same
 
         case CountMsg(msgInt) =>
           ctx.system.log.info("Print new message Int ")
           println(s"Count $msgInt")
-          Actor.same
+          Behaviors.same
       }
     }
 

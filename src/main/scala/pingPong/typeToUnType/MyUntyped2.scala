@@ -1,12 +1,12 @@
-package pingPong.typeToUnType
+package com.pingPong.typeToUnType
 
-import akka.actor.Props
+import akka.actor.{Props, Actor}
 
 object MyUntyped2 {
   def myProps(): Props = Props(new MyUntyped2)
 }
 
-class MyUntyped2 extends akka.actor.Actor {
+class MyUntyped2 extends Actor {
 
   override def receive = {
     case MyTyped2.Ping(replyTo) =>
