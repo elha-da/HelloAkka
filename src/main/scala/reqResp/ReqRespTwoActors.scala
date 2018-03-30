@@ -9,7 +9,7 @@ import akka.actor.typed.scaladsl.Behaviors
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
-object ReqRespTwoActors extends App {
+object ReqRespTwoActors {
 
   object Hal {
 
