@@ -15,7 +15,8 @@ import roundRobin.ImmutableRoundRobin
 import com.msgProtocols.ChatRoom
 import com.msgProtocols.ChatRoom._
 import pingPong.withReceptionist.First._
-import pingPong.withReceptionist.{Guardian, First, Second}
+import pingPong.withReceptionist.{First, Guardian, Second}
+import reqResp.ReqRespTwoActors.{Dave, Hal}
 
 object Main extends App {
 
@@ -48,15 +49,19 @@ object Main extends App {
 //  val childDep = actorSystem.spawn(Child.init, "child2")
 //  val parentDep = actorSystem.spawn(Parent.init(childDep), "parent2")
 
-  val parentDep = actorSystem.spawn(Parent.init, "parent2")
-  parentDep ! pingMsgParent("toto")
+//  val parentDep = actorSystem.spawn(Parent.init, "parent2")
+//  println(s"parentDep : $parentDep")
+//  parentDep ! pingMsgParent("toto")
 
 //  val actChatRoom = actorSystem.spawn(ChatRoom.root, "chat-RoOm")
 //  val actChatRoom = actorSystem.spawn(ChatRoom.main, "ChatRoomDemo")
 
 
-//  val actGuardian = actorSystem.spawn(Guardian.guardian(), "guardian-Test")
+//  val actGuardian = actorSystem.spawn(Guardian.supervised(), "guardian-Test")
 
   //shutdown actorsystem
 //  actorSystem.terminate()
+
+  val hal: ActorRef[Hal.HalCommand] = actorSystem.spawn(Hal.halBehavior, "hal")
+  val dave: ActorRef[Dave.DaveMessage] = actorSystem.spawn(Dave.daveBehavior(hal), "influxDbAppender")
 }
