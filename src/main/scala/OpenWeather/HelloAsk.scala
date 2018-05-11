@@ -18,7 +18,7 @@ object HelloAsk extends App {
   implicit val system: ActorSystem = ActorSystem("hello-ask")
   implicit val materializer: ActorMaterializer = ActorMaterializer()
 
-  val execActor = system.spawn(Execution.supervised(), "execution-actor")
+  val execActor = system.spawn(Execution.active(), "execution-actor")
 
 }
 
@@ -37,32 +37,23 @@ object Execution {
 
   private case object FetchWeatherTimer
 
-  def supervised()
-  : Behavior[CommandE] =
-    Behaviors.supervise {
-      active()
-    }.onFailure(
-      SupervisorStrategy
-        .restartWithBackoff(
-          minBackoff = 500.millis,
-          maxBackoff = 10.seconds,
-          randomFactor = 0.1
-        )
-    )
 
-  private def active():
+
+  def active():
   Behavior[CommandE] =
     Behaviors.setup { ctx =>
       ctx.system.log.info("startUp Weather")
 
-      val geeterActor: ActorRef[HelloWorld.Greet] = ctx.spawn(HelloWorld.greeter, "helloGreeter")
+      val geeterActor: ActorRef[HelloWorld.Greet] = ctx.spawn(HelloWorld.supervised, "helloGreeter")
+      ctx.watch(geeterActor)
+
       preActive(geeterActor)
     }
 
   private def preActive(geeterActor: ActorRef[HelloWorld.Greet])
   : Behavior[CommandE] =
     Behaviors.withTimers {
-      print(s"start Timers")
+      println(s"start Timers")
       timers =>
         timers.startSingleTimer(InitTimerKey,
           GetActualWeather(geeterActor),
@@ -111,9 +102,22 @@ object HelloWorld {
 
   final case class Greeted(whom: String) extends Command
 
-  val greeter
-  : Behavior[Greet] =
-    Behaviors.receive[Greet] { (ctx, msg) ⇒
+  val supervised
+  : Behavior[Command] =
+    Behaviors.supervise {
+      greeter()
+    }.onFailure(
+      SupervisorStrategy
+        .restartWithBackoff(
+          minBackoff = 500.millis,
+          maxBackoff = 10.seconds,
+          randomFactor = 0.1
+        )
+    )
+
+  private def greeter()
+  : Behavior[Command] =
+    Behaviors.receive { (ctx, msg) ⇒
       msg match {
         case Greet(msg_whom, msg_replyTo) =>
           ctx.system.log.info(s"Hello ${msg_whom}!")
