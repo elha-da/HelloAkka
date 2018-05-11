@@ -28,7 +28,7 @@ object Execution {
 
   sealed trait CommandE
 
-  private case class GetActualWeather(wH: ActorRef[HelloWorld.Greet]) extends CommandE
+  private case class GetActualWeather(wH: ActorRef[HelloWorld.Command]) extends CommandE
 
   /**
     * timers Key
@@ -44,13 +44,13 @@ object Execution {
     Behaviors.setup { ctx =>
       ctx.system.log.info("startUp Weather")
 
-      val geeterActor: ActorRef[HelloWorld.Greet] = ctx.spawn(HelloWorld.supervised, "helloGreeter")
+      val geeterActor: ActorRef[HelloWorld.Command] = ctx.spawn(HelloWorld.supervised, "helloGreeter")
       ctx.watch(geeterActor)
 
       preActive(geeterActor)
     }
 
-  private def preActive(geeterActor: ActorRef[HelloWorld.Greet])
+  private def preActive(geeterActor: ActorRef[HelloWorld.Command])
   : Behavior[CommandE] =
     Behaviors.withTimers {
       println(s"start Timers")
@@ -58,7 +58,7 @@ object Execution {
         timers.startSingleTimer(InitTimerKey,
           GetActualWeather(geeterActor),
           FiniteDuration(1, "second"))
-        timers.startPeriodicTimer(FetchWeatherTimer, GetActualWeather(geeterActor), 2.second)
+        timers.startPeriodicTimer(FetchWeatherTimer, GetActualWeather(geeterActor), 3.second)
 
         start()
     }
@@ -75,7 +75,7 @@ object Execution {
           // the response callback will be executed on this execution context
           implicit val ec = system.dispatcher
 
-          val future: Future[HelloWorld.Greeted] = geeterActor ? (HelloWorld.Greet("world", _))
+          val future: Future[HelloWorld.Command] = geeterActor ? (HelloWorld.Greet("world", _))
 
           for {
             greeting ← future.recover {
@@ -83,7 +83,8 @@ object Execution {
             }
             done ← {
               println(s"result: $greeting")
-              system.terminate()
+//              system.terminate()
+              system.whenTerminated
             }
           } println("system terminated")
 
@@ -98,7 +99,7 @@ object HelloWorld {
 
   sealed trait Command
 
-  final case class Greet(whom: String, replyTo: ActorRef[Greeted]) extends Command
+  final case class Greet(whom: String, replyTo: ActorRef[Command]) extends Command
 
   final case class Greeted(whom: String) extends Command
 
