@@ -10,11 +10,9 @@ import akka.util.Timeout
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
-//import scala.concurrent.Await
+
 
 object HelloAsk extends App {
-  // using global pool since we want to run tasks after system.terminate
-  //  import scala.concurrent.ExecutionContext.Implicits.global
   import akka.actor.typed.scaladsl.adapter._
 
   implicit val system: ActorSystem = ActorSystem("hello-ask")
@@ -71,11 +69,9 @@ object Execution {
           FiniteDuration(1, "second"))
         timers.startPeriodicTimer(FetchWeatherTimer, GetActualWeather(geeterActor), 2.second)
 
-//        start(geeterActor)
         start()
     }
 
-//  private def start(geeterActor: ActorRef[HelloWorld.Greet])
   private def start()
   : Behavior[CommandE] =
     Behaviors.receive { (context, msg) =>
