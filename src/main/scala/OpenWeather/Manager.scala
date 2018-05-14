@@ -3,18 +3,19 @@ package OpenWeather
 import java.util.UUID
 
 import example.Main._
-import OpenWeather.model.{Weather}
-import OpenWeather.model.Weather.{WeatherC}
-import OpenWeather.model.Weather.GetNewWeather
+import OpenWeather.model.{Indicator, Weather}
+import OpenWeather.model.Weather._
+import OpenWeather.model.Indicator._
 
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.scaladsl.AskPattern._
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpMethods, HttpRequest}
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.http.scaladsl.unmarshalling.sse.EventStreamUnmarshalling._
-import akka.actor.typed.scaladsl.AskPattern._
 import akka.util.Timeout
+
 import io.circe.{HCursor, Json}
 import io.circe.parser.parse
 
@@ -25,9 +26,12 @@ import scala.util.{Failure, Success}
 
 object Manager {
 
+  case class Meteo(description: String, humidity: Long, pressure: Long)
+
   sealed trait Command
 
-  private case class GetActualWeather(wH: ActorRef[Weather.Command]) extends Command
+//  private case class GetActualMeteo(wH: ActorRef[Weather.Command]) extends Command
+  private case object GetActualMeteo extends Command
 
 
   /**
@@ -42,31 +46,41 @@ object Manager {
   Behavior[Command] =
     Behaviors.setup { ctx =>
       ctx.system.log.info("startUp managerRef")
-      val weatherActor: ActorRef[Weather.Command] = ctx.spawn(Weather.supervised(), s"weather${UUID.randomUUID()}")
-      ctx.watch(weatherActor)
+      implicit val weatherActor: ActorRef[Weather.Command] = ctx.spawn(Weather.supervised(), s"weather") //${UUID.randomUUID()}")
+      implicit val indicatorActor: ActorRef[Indicator.Command] = ctx.spawn(Indicator.supervised(), s"indicator") //${UUID.randomUUID()}")
 
-      preActive(weatherActor)
+      ctx.watch(weatherActor)
+      ctx.watch(indicatorActor)
+
+      preActive() //weatherActor, indicatorActor)
     }
 
-  private def preActive(weatherA: ActorRef[Weather.Command])
+  private def preActive()( implicit
+                                weatherA  : ActorRef[Weather.Command],
+                                indicatorA: ActorRef[Indicator.Command]
+  )
   : Behavior[Command] =
     Behaviors.withTimers(timers => {
       timers.startSingleTimer(InitTimerKey,
-        GetActualWeather(weatherA),
+        GetActualMeteo,
         FiniteDuration(1, "second"))
-      timers.startPeriodicTimer(FetchWeatherTimer, GetActualWeather(weatherA), 10.second)
+      timers.startPeriodicTimer(FetchWeatherTimer, GetActualMeteo, 10.second)
 
       activeBehavior()
     })
 
 
-  private def activeBehavior()
+  private def activeBehavior()( implicit
+                                weatherA  : ActorRef[Weather.Command],
+                                indicatorA: ActorRef[Indicator.Command]
+  )
   : Behavior[Command] =
     Behaviors.receive { (ctx, msg) =>
       ctx.system.log.info("manager switch active behavior ")
 
       msg match {
-        case GetActualWeather(askResponseTo) =>
+//        case GetActualMeteo(askResponseTo) =>
+        case GetActualMeteo =>
           // asking someone requires a timeout and a scheduler
           // if the timeout hits without response the ask is failed with a TimeoutException
           implicit val timeout: Timeout = 5.seconds
@@ -74,7 +88,7 @@ object Manager {
           // the response callback will be executed on this execution context
           implicit val ec = actorSystem.dispatcher
 
-          ctx.system.log.info("manager switch active GetActualWeather ")
+          ctx.system.log.info("manager switch active GetActualMeteo ")
 
           val req = HttpRequest(
             method = HttpMethods.GET,
@@ -90,19 +104,26 @@ object Manager {
           respFuture.onComplete {
             case Success(result) =>
               val doc: HCursor = parse(result).getOrElse(Json.Null).hcursor
-              val wResult: Future[Weather.Command] = askResponseTo ? (GetNewWeather(doc, _))
+              val indicatorResult: Future[IndicatorC] = indicatorA ? (GetNewIndicator(doc, _))
+              val weatherResult  : Future[WeatherC]   = weatherA ? (GetNewWeather(doc, _))
 
-              wResult.onComplete {
-                case Success(weather) ⇒
-                  ctx.system.log.info(s"Yay, we got weather: $weather")
 
+              val m = for {
+                w <- weatherResult
+                i <- indicatorResult
+              } yield (Meteo(w.description, i.humidity, i.pressure))
+
+              m.onComplete {
+                case Success(rst) ⇒
+                  ctx.system.log.info(s"Yay, we got weather: $rst")
                 case Failure(ex) ⇒
-                  ctx.system.log.error(s"Boo! didn't get weather in time: $ex")
+                  ctx.system.log.error(s"Boo! didn't get weather in time: ${ex.getMessage}")
+                  None
               }
 
             case Failure(e) =>
               ctx.system.log.error(s"Auth post failed: ${e.getMessage}")
-
+              None
           }
 
 

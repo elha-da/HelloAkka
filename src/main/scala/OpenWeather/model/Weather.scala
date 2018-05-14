@@ -12,12 +12,11 @@ object Weather {
 
   sealed trait Command
 
-  final case class GetNewWeather(docHCurs: HCursor, sender: ActorRef[Command]) extends Command
+  final case class GetNewWeather(docHCurs: HCursor, sender: ActorRef[WeatherC]) extends Command
 
   final case class WeatherC(description: String, icon: String, id: Long, main: String) extends Command
 
   //  final case class Wind(speed: Long, deg: Long)
-  //  final case class Main(humidity: Long, pressure: Long, temp: Long, temp_max: Long, temp_min: Long)
 
 
   implicit val decodeWeather: Decoder[WeatherC] = new Decoder[WeatherC] {
@@ -49,7 +48,6 @@ object Weather {
   Behavior[Command] =
     Behaviors.setup { ctx =>
       ctx.system.log.info("startUp Weather")
-
       preActive()
     }
 
@@ -57,10 +55,8 @@ object Weather {
   Behavior[Command] =
     Behaviors.receive { (ctx, msg) =>
       ctx.system.log.info("Weather switch active behavior ")
-
       msg match {
         case GetNewWeather(docHCurs, sender) =>
-
           val weatherDecode = docHCurs.downField("weather")
             .focus
             .flatMap(o => o.asArray)
@@ -69,6 +65,7 @@ object Weather {
           weatherDecode.map {
             case Left(e) =>
               ctx.system.log.info(s"Decoding Failure: $e")
+              None
             case Right(weather) =>
               sender ! weather
 
