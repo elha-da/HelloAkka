@@ -11,20 +11,22 @@ import akka.util.Timeout
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
+import example.Main._
 
-object HelloAsk extends App {
+
+/*object Main extends App {
   import akka.actor.typed.scaladsl.adapter._
 
   implicit val system: ActorSystem = ActorSystem("hello-ask")
   implicit val materializer: ActorMaterializer = ActorMaterializer()
 
-  val execActor = system.spawn(Execution.active(), "execution-actor")
+  val execActor = system.spawn(HelloAsk.active(), "execution-actor")
 
-}
+}*/
 
-object Execution {
+object HelloAsk {
 
-  import HelloAsk.system
+//  import Main.actorSystem
 
   sealed trait CommandE
 
@@ -35,11 +37,11 @@ object Execution {
     */
   private case object InitTimerKey
 
-  private case object FetchWeatherTimer
+  private case object SendGreetedTimer
 
 
 
-  def active():
+  def start():
   Behavior[CommandE] =
     Behaviors.setup { ctx =>
       ctx.system.log.info("startUp Weather")
@@ -57,23 +59,24 @@ object Execution {
       timers =>
         timers.startSingleTimer(InitTimerKey,
           GetActualWeather(geeterActor),
-          FiniteDuration(1, "second"))
-        timers.startPeriodicTimer(FetchWeatherTimer, GetActualWeather(geeterActor), 3.second)
+//          FiniteDuration(1, "second"))
+          1 second)
+//        timers.startPeriodicTimer(SendGreetedTimer, GetActualWeather(geeterActor), 3.second)
 
-        start()
+        active()
     }
 
-  private def start()
+  private def active()
   : Behavior[CommandE] =
     Behaviors.receive { (context, msg) =>
-      context.system.log.info(s"active exec !")
+      context.system.log.info(s"active HelloAsk !")
       msg match {
         case GetActualWeather(geeterActor) =>
 
           implicit val timeout: Timeout = 5.seconds
-          implicit val scheduler = system.scheduler
+          implicit val scheduler = actorSystem.scheduler
           // the response callback will be executed on this execution context
-          implicit val ec = system.dispatcher
+          implicit val ec = actorSystem.dispatcher
 
           val future: Future[HelloWorld.Command] = geeterActor ? (HelloWorld.Greet("world", _))
 
@@ -83,8 +86,8 @@ object Execution {
             }
             done ← {
               println(s"result: $greeting")
-//              system.terminate()
-              system.whenTerminated
+//              actorSystem.whenTerminated
+              actorSystem.terminate()
             }
           } println("system terminated")
 
