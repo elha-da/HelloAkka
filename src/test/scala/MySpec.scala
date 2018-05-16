@@ -1,15 +1,19 @@
+/*
 package firstSample
 
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.testkit.{ImplicitSender, TestActors, TestKit, TestProbe}
+import com.familyDep.Family
+import com.familyDep.FamilyDep
+import com.familyDep.FamilyDep.Child._
+import com.familyDep.FamilyDep.Parent._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-
-import com.familyDep.Family._
+//import com.familyDep.Family._
 
 import scala.concurrent.duration._
 
 
-class MySpec() extends TestKit(ActorSystem("MySpec"))
+class MySpec() extends TestKit(ActorSystem("MySpec-test"))
                 with ImplicitSender
                 with WordSpecLike
                 with Matchers
@@ -44,21 +48,34 @@ class MySpec() extends TestKit(ActorSystem("MySpec"))
   "A TestProbe serving as parent" should {
     "test its child responses" in {
       val parent = TestProbe()
-      val child = parent.childActorOf(Props[Child](), "child")
+      val child = parent.childActorOf(Props[Family.Child], "child")
       parent.send(child, "ping")
       parent.expectMsg("pong")
     }
   }
+/*
+  "A TestProbe serving as parent in FamilyDep" should {
+    "test its child FamilyDep responses" in {
+      val parent = TestProbe()
+      val child = parent.childActorOf(Props[FamilyDep.Child.Command], "child")
+      parent.send(child, pingMsgParent("ping"))
+      parent.expectMsg("pong")
+    }
+  }
+*/
+
 
   "A TestProbe serving as parent Actor" should {
-      "test its child responses 2" in {
-        val child = TestProbe()
-        val parent = system.actorOf(Props[Parent](), "child2")
-//        parent ! "pingit"
-//        expectMsg(5.second,"ping")
-        child.send(parent, "pingit")
-        child.expectMsg(5.second, "ping")
+      "test its child responses double Child" in {
+        val parent = system.actorOf(Props[Family.Parent], "doubleChild")
+        val child1 = TestProbe()
+//        val child2 = TestProbe()
+//        parent ! ((child1, child2))
+        parent ! "pingit"
+//        child1.send(parent, "pingit")
+        child1.expectMsg("ping")
+//        child2.expectMsg(10.second, "ping")
       }
     }
 
-}
+}*/

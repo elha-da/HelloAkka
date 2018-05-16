@@ -5,31 +5,26 @@ import akka.actor.typed.scaladsl.Behaviors
 
 object ChatRoom {
   sealed trait Command
-  final case class GetSession(screenName: String, replyTo: ActorRef[SessionEvent])
-    extends Command
-  private final case class PostSessionMessage(screenName: String, message: String)
-    extends Command
+  final case class GetSession(screenName: String, replyTo: ActorRef[SessionEvent]) extends Command
+  private final case class PostSessionMessage(screenName: String, message: String) extends Command
 
   sealed trait SessionEvent
-  final case class SessionGranted(handle: ActorRef[PostMessage])
-    extends SessionEvent
-  final case class SessionDenied(reason: String)
-    extends SessionEvent
-  final case class MessagePosted(screenName: String, message: String)
-    extends SessionEvent
+  final case class SessionGranted(handle: ActorRef[PostMessage])      extends SessionEvent
+  final case class SessionDenied(reason: String)                      extends SessionEvent
+  final case class MessagePosted(screenName: String, message: String) extends SessionEvent
 
   final case class PostMessage(message: String)
 
   private def chatRoom(sessions: List[ActorRef[SessionEvent]])
   : Behavior[Command] =
-    Behaviors.immutable[Command] { (ctx, msg) =>
+    Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case GetSession(screenName, client) =>
-          ctx.system.log.info(s"chatRoom - GetSession - context: $ctx")
-          ctx.system.log.info(s"chatRoom - GetSession - msg: $msg")
+          ctx.system.log.info(s"chatRoom - GetSession - context   : $ctx")
+          ctx.system.log.info(s"chatRoom - GetSession - msg       : $msg")
           ctx.system.log.info(s"chatRoom - GetSession - screenName: $screenName")
-          ctx.system.log.info(s"chatRoom - GetSession - client: $client")
-          ctx.system.log.info(s"chatRoom - GetSession - sessions: $sessions")
+          ctx.system.log.info(s"chatRoom - GetSession - client    : $client")
+          ctx.system.log.info(s"chatRoom - GetSession - sessions  : $sessions")
           val wrapper: ActorRef[PostMessage] = ctx.messageAdapter{ p: PostMessage => PostSessionMessage(screenName, p.message) }
           client ! SessionGranted(wrapper)
           chatRoom(client :: sessions)
@@ -45,7 +40,7 @@ object ChatRoom {
 
   val gabbler
   : Behavior[SessionEvent]  =
-    Behaviors.immutable[SessionEvent] { (context, msg) =>
+    Behaviors.receive[SessionEvent] { (context, msg) =>
       msg match {
         case SessionDenied(reason) =>
           context.system.log.info(s"chatRoom - SessionDenied: $reason")
@@ -56,8 +51,8 @@ object ChatRoom {
           handle ! PostMessage("Hello - World!")
           Behaviors.same
         case MessagePosted(screenName, message) =>
-          context.system.log.info(s"chatRoom - MessagePosted: $screenName | $message")
-          println(s"message has been posted by '$screenName': $message")
+          context.system.log.info(s"chatRoom - MessagePosted  : $screenName | $message")
+          context.system.log.info(s"message has been posted by '$screenName': $message")
           Behaviors.stopped
         }
       }
@@ -77,7 +72,7 @@ object ChatRoom {
 */
 
   val main: Behavior[akka.NotUsed] =
-  Behaviors.setup { ctx =>
+  Behaviors.setup[akka.NotUsed] { ctx =>
     ctx.system.log.info(s"chatRoom - main ! ")
     val chatRoom   = ctx.spawn(ChatRoom.behaviorChatRoom, "chatroom")
     val gabblerRef = ctx.spawn(ChatRoom.gabbler, "gabbler")
@@ -85,12 +80,15 @@ object ChatRoom {
     ctx.watch(gabblerRef)
     chatRoom ! GetSession("ol’ Gabbler", gabblerRef)
 
-    Behaviors.immutable[akka.NotUsed] {
+    Behaviors.receive[akka.NotUsed] {
       ctx.system.log.info(s"chatRoom - main 01 ! ")
-      (_, _) => Behaviors.unhandled
-    } onSignal {
+      (_, _) =>
+        Behaviors.unhandled
+    } receiveSignal {
       case (ctx, Terminated(ref)) =>
-        ctx.system.log.info(s"chatRoom - main 02 ! ")
+        import example.Main._
+        ctx.system.log.info(s"chatRoom - stopped ! ")
+        actorSystem.terminate()
         Behaviors.stopped
     }
   }

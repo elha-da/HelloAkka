@@ -30,25 +30,26 @@ object Child {
 
   private def startC(parentActors: Vector[ActorRef[Parent.Command]])
   : Behavior[Child.Command] =
-    Behaviors.immutable[Command] { (ctx, msg) =>
+    Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case WrappedListingEvent(listing) => {
           listing match {
             case Parent.ParentServiceKey.Listing(services: Set[ActorRef[Parent.Command]]) =>
-              //        case w:WrappedListingEvent =>
               ctx.system.log.info(s"new Parrent recived : $services")
               startC(services.toVector)
           }
         }
         case pingMsgChild(msgString) =>
-          ctx.system.log.info(s"Child - ping: $msgString")
-          ctx.system.log.info(s"Child - parentActors $parentActors")
+          ctx.system.log.info(s"Child : msgString received")
+//          ctx.system.log.info(s"Child - ping: $msgString")
+//          ctx.system.log.info(s"Child - parentActors $parentActors")
 //          val i = ThreadLocalRandom.current.nextInt(parentActors.size)
 //          parentActors(i) ! pongMsgParent(0)
 //          parentActors(0) ! pongMsgParent(0)
+//            parentActors.last ! pongMsgParent(0)
           if (parentActors.nonEmpty) {
             ctx.system.log.info(s"Child parentActors-nonEmpty : $parentActors")
-            parentActors.last ! pongMsgParent(0)
+            parentActors.foreach(act => act ! pongMsgParent(0))
           } else {
             ctx.system.log.info(s"Child parentActors-Empty : $parentActors")
             ctx.self ! pingMsgChild(msgString)
@@ -56,8 +57,9 @@ object Child {
           Behaviors.same
 
         case pongMsgChild(msgInt) =>
-          ctx.system.log.info(s"Child - pong: $msgInt")
-//          ctx.system.log.info("ping")
+          ctx.system.log.info(s"Child : msgInt received")
+//          ctx.system.log.info(s"Child - pong: $msgInt")
+          ctx.system.log.info("ping")
           Behaviors.stopped
       }
     }

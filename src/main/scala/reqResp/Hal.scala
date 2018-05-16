@@ -15,7 +15,7 @@ object Hal {
 
   val halBehavior
   : Behavior[HalCommand] =
-    Behaviors.immutable[HalCommand] { (ctx, msg) ⇒
+    Behaviors.receive[HalCommand] { (ctx, msg) ⇒
       msg match {
         case OpenThePodBayDoorsPlease(respondTo) ⇒
           respondTo ! HalResponse("I'm sorry, Dave. I'm afraid I can't do that.")

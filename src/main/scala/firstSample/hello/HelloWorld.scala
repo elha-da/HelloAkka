@@ -13,7 +13,7 @@ object HelloWorld {
 
   val greeter
   : Behavior[Greet] =
-    Behaviors.immutable[Greet] { (ctx, msg) =>
+    Behaviors.receive[Greet] { (ctx, msg) =>
       ctx.system.log.info(s"HelloWorld - greeter ! ")
       println(s"Hello ${msg.whom}!")
       msg.replyTo ! Greeted(msg.whom)

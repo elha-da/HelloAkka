@@ -15,7 +15,7 @@ object Third {
   : Behavior[Ping] =
     Behaviors.setup { ctx =>
       ctx.system.receptionist ! Receptionist.Register(pingServiceKeyThird, ctx.self) //, ctx.system.deadLetters)
-      Behaviors.immutable[Ping] { (contx, msg) =>
+      Behaviors.receive[Ping] { (contx, msg) =>
         msg match {
           case Ping(replyTo) =>
             contx.system.log.info(s"pingService-Third: $replyTo")

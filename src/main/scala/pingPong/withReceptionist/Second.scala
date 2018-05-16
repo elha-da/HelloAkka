@@ -9,9 +9,12 @@ object Second {
   : Behavior[First.Pong.type] =
     Behaviors.setup[First.Pong.type] { ctx =>
       ctx.system.log.info(s"pingService-Second : $pingService ! ${ctx.self}")
+
+      ctx.watch(pingService)
+
       pingService ! First.Ping(ctx.self)
 
-      Behaviors.immutable { (contx, msg) =>
+      Behaviors.receive[First.Pong.type] { (contx, msg) =>
         contx.system.log.info("I was ponged!!" + msg)
         Behaviors.same
       }

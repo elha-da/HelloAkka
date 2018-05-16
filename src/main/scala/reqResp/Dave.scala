@@ -59,8 +59,8 @@ object Dave {
     }
 
   def start(buf: ListBuffer[String])(implicit bufferSize: Int)
-  : Behaviors.Immutable[DaveMessage] =
-    Behaviors.immutable { (ctx, msg) ⇒
+  : Behavior[DaveMessage] =
+    Behaviors.receive[DaveMessage] { (ctx, msg) ⇒
       msg match {
         case ConcatResponse(resp) ⇒
           buf += resp

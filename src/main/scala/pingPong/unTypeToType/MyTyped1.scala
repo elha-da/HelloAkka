@@ -11,7 +11,7 @@ object MyTyped1 {
   case object Pong
 
   val behavior: Behavior[Command] =
-    Behaviors.immutable { (ctx, msg) =>
+    Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case Ping(replyTo) =>
           println(s"${ctx.self} got Ping from $replyTo")

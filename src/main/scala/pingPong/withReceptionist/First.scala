@@ -23,7 +23,7 @@ object First {
 
   def start()
   : Behavior[Ping] =
-    Behaviors.immutable[Ping] { (contx, msg) =>
+    Behaviors.receive[Ping] { (contx, msg) =>
       msg match {
         case Ping(replyTo) =>
           contx.system.log.info(s"pingService-First : $replyTo")

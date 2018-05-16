@@ -26,31 +26,49 @@ object Parent {
       ctx.system.receptionist ! Receptionist.Register(ParentServiceKey, ctx.self)
 
       val child = ctx.spawn(Child.init, "child2")
-//      ctx.watch(child)
+      ctx.watch(child)
 
       startP(child)
     }
 
   private def startP(child: ActorRef[Child.Command])
   : Behavior[Parent.Command] =
-    Behaviors.immutable[Command] { (context, msg) =>
+    Behaviors.receive[Command] { (context, msg) =>
       msg match {
         case pingMsgParent(msgString) =>
-          context.system.log.info(s"Parent - msgString : $msgString")
-          context.system.log.info(s"Parent - child : $child")
+          context.system.log.info(s"Parent : msgString received")
+          //          context.system.log.info(s"Parent - msgString : $msgString")
+          //          context.system.log.info(s"Parent - child : $child")
           child ! pingMsgChild("ping")
           Behaviors.same
 
         case pongMsgParent(msgInt) =>
-          context.system.log.info(s"Parent - pong: $msgInt")
+          context.system.log.info(s"Parent : msgInt received")
+          //          context.system.log.info(s"Parent - pong: $msgInt")
           val ponged = true
           context.self ! pongItParent(ponged)
           Behaviors.same
 
         case pongItParent(msgBoolean) =>
-          context.system.log.info(s"Parent - pongIt: $msgBoolean")
+          context.system.log.info(s"Parent : msgBoolean received")
+          //          context.system.log.info(s"Parent - pongIt: $msgBoolean")
           child ! pongMsgChild(12)
           Behaviors.same
       }
+    } receiveSignal {
+      case (_, PreRestart) =>
+        println("Worker {} is RESTARTED", Behaviors)
+        Behaviors.same
+      case (_, PostStop) =>
+        println("Worker {} is STOPPED", Behavior)
+        Behaviors.same
+      case (_, Terminated(`child`)) ⇒
+        println("Ping service has shut down")
+        println(s"${Behaviors} | ${Behavior}")
+        Behaviors.stopped
+        System.exit(1)
+
+        Behaviors.same
     }
+
 }

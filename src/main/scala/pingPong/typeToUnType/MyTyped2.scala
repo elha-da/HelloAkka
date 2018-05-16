@@ -16,7 +16,7 @@ object MyTyped2 {
 
 //  val behaviorTyped: Behavior[Command] =
   def behaviorTyped(): Behavior[Command] =
-    Behaviors.setup { context =>
+    Behaviors.setup[Command] { context =>
       // context.spawn is an implicit extension method
       val secondActRef: ActorRef = context.actorOf(MyUntyped2.myProps(), "second")
 
@@ -28,7 +28,7 @@ object MyTyped2 {
       // illustrating how to pass sender, toUntyped is an implicit extension method
       secondActRef.tell(MyTyped2.Ping(context.self), context.self.toUntyped)
 
-      Behaviors.immutable[Command] { (ctx, msg) =>
+      Behaviors.receive[Command] { (ctx, msg) =>
         msg match {
           case Pong =>
             // it's not possible to get the sender, that must be sent in message
@@ -37,7 +37,7 @@ object MyTyped2 {
             ctx.stop(secondActRef)
             Behaviors.same
         }
-      } onSignal {
+      } receiveSignal {
         case (ctx, akka.actor.typed.Terminated(ref)) =>
           println(s"${ctx.self} observed termination of $ref")
           Behaviors.stopped
