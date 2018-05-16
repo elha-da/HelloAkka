@@ -7,6 +7,8 @@ import akka.actor.typed.scaladsl.Behaviors
 import scala.concurrent.duration._
 import io.circe._
 
+import io.circe.generic.auto._
+
 
 object Weather {
 
@@ -14,22 +16,25 @@ object Weather {
 
   final case class GetNewWeather(docHCurs: HCursor, sender: ActorRef[WeatherC]) extends Command
 
-  final case class WeatherC(description: String, icon: String, id: Long, main: String) extends Command
+  final case class WeatherC(description: String, icon: String, id: Long, main: String) //extends Command
 
   //  final case class Wind(speed: Long, deg: Long)
 
 
-  implicit val decodeWeather: Decoder[WeatherC] = new Decoder[WeatherC] {
-    final def apply(c: HCursor): Decoder.Result[WeatherC] =
-      for {
-        description <- c.downField("description").as[String]
-        icon <- c.downField("icon").as[String]
-        id <- c.downField("id").as[Long]
-        main <- c.downField("main").as[String]
-      } yield {
-        new WeatherC(description, icon, id, main)
-      }
-  }
+  /**
+    * replaced by "heikoseeberger" dependence
+    */
+  //  implicit val decodeWeather: Decoder[WeatherC] = new Decoder[WeatherC] {
+//    final def apply(c: HCursor): Decoder.Result[WeatherC] =
+//      for {
+//        description <- c.downField("description").as[String]
+//        icon <- c.downField("icon").as[String]
+//        id <- c.downField("id").as[Long]
+//        main <- c.downField("main").as[String]
+//      } yield {
+//        new WeatherC(description, icon, id, main)
+//      }
+//  }
 
   def supervised()
   : Behavior[Command] =

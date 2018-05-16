@@ -1,32 +1,37 @@
+package example
 
+import OpenWeather.{HelloAsk, Manager}
 import akka.actor
 import akka.actor.typed.receptionist.Receptionist.{Find, Register}
-import akka.actor.{ActorSystem, Props}
+import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.receptionist.{Receptionist, ServiceKey}
+import akka.http.scaladsl.{Http, HttpExt}
+import akka.stream.ActorMaterializer
 import com.familyDep.Family.Parent
 import com.familyDep.FamilyDep.{Child, Parent}
 import com.familyDep.FamilyDep.Parent.pingMsgParent
-import firstSample.hello.WokerHelloAkka
-import firstSample.hello.WokerHelloAkka._
+import firstSample.hello.WorkerHelloAkka
+import firstSample.hello.WorkerHelloAkka._
 import com.pingPong.unTypeToType._
 import com.pingPong.typeToUnType._
 import roundRobin.ImmutableRoundRobin
 import com.msgProtocols.ChatRoom
 import com.msgProtocols.ChatRoom._
+import firstSample.{Greeter, WhoToGreet}
 import pingPong.withReceptionist.First._
 import pingPong.withReceptionist.{First, Guardian, Second}
-import reqResp.ReqRespTwoActors.{Dave, Hal}
+import reqResp.Dave
 
 object Main extends App {
 
   import akka.actor.typed.scaladsl.adapter._
 
-  implicit val actorSystem: ActorSystem =
-      ActorSystem("hello-World")
+  implicit val actorSystem: ActorSystem = ActorSystem("hello-World")
+  implicit val materializer: ActorMaterializer = ActorMaterializer()
 
-//  val workerHelloAkka: ActorRef[WokerHelloAkka.Command] =
-//      actorSystem.spawn(WokerHelloAkka.initBehavior, "worker-HelloAkka")
+//  val workerHelloAkka: ActorRef[WorkerHelloAkka.Command] =
+//      actorSystem.spawn(WorkerHelloAkka.initBehavior, "worker-HelloAkka")
 
 //  workerHelloAkka.tell(HelloMsg("akka \" tell \""))
 //  workerHelloAkka ! HelloMsg("akka \" ! \"")
@@ -43,7 +48,7 @@ object Main extends App {
 //      actorSystem.spawn(ImmutableRoundRobin.roundRobinBehavior(4, MyTyped2.behaviorTyped), "immuRoundRobin-Actor")
 
 
-//  val parent = actorSystem.actorOf(Props[Parent](), "child2")
+//  val parent: actor.ActorRef = actorSystem.actorOf(Props[Parent](), "child2")
 //  parent ! "pingit"
 
 //  val childDep = actorSystem.spawn(Child.init, "child2")
@@ -59,9 +64,21 @@ object Main extends App {
 
 //  val actGuardian = actorSystem.spawn(Guardian.supervised(), "guardian-Test")
 
+/*
+  // Create the 'greeter' actor
+  val greeter = actorSystem.actorOf(Props[Greeter], "greeter")
+  // Send WhoToGreet Message to actor
+  greeter ! WhoToGreet("Akka")
+*/
+
   //shutdown actorsystem
 //  actorSystem.terminate()
 
-  val hal: ActorRef[Hal.HalCommand] = actorSystem.spawn(Hal.halBehavior, "hal")
-  val dave: ActorRef[Dave.DaveMessage] = actorSystem.spawn(Dave.daveBehavior(hal), "influxDbAppender")
+//  val dave: ActorRef[Dave.DaveMessage] = actorSystem.spawn(Dave.daveBehavior(), "dave")
+
+//  val execActor = actorSystem.spawn(HelloAsk.start(), "helloAsk-actor")
+
+  implicit val http: HttpExt = Http(actorSystem)
+  val managerActor = actorSystem.spawn(Manager.start(), "Open-Weather")
+
 }

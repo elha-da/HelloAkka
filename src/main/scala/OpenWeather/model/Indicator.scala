@@ -14,7 +14,7 @@ object Indicator {
 
   final case class GetNewIndicator(docHCurs: HCursor, sender: ActorRef[IndicatorC]) extends Command
 
-  final case class IndicatorC(humidity: Long, pressure: Long, temp: Long, temp_max: Float, temp_min: Float) extends Command
+  final case class IndicatorC(humidity: Long, pressure: Long, temp: Long, temp_max: Long, temp_min: Long) //extends Command
 
 
   implicit val decodeIndicator: Decoder[IndicatorC] = new Decoder[IndicatorC] {
@@ -26,7 +26,7 @@ object Indicator {
         temp_max <- c.downField("temp_max").as[Float]
         temp_min <- c.downField("temp_min").as[Float]
       } yield {
-        new IndicatorC(humidity, pressure, temp.toLong, temp_max, temp_min)
+        new IndicatorC(humidity, pressure, Math.round(temp), Math.round(temp_max), Math.round(temp_min))
       }
   }
 

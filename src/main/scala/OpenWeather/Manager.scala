@@ -1,38 +1,43 @@
 package OpenWeather
 
-import java.util.UUID
 
+import OpenWeather.config.Configs
 import example.Main._
 import OpenWeather.model.{Indicator, Weather}
 import OpenWeather.model.Weather._
 import OpenWeather.model.Indicator._
-
+import akka.actor.Scheduler
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.AskPattern._
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{HttpMethods, HttpRequest}
+import akka.http.scaladsl.{Http, HttpExt}
+import akka.http.scaladsl.model.{HttpMethods, HttpRequest, RequestEntity}
+import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.http.scaladsl.unmarshalling.sse.EventStreamUnmarshalling._
+import akka.http.scaladsl.model._
+import akka.stream.ActorMaterializer
 import akka.util.Timeout
-
-import io.circe.{HCursor, Json}
+import io.circe.{Decoder, Encoder, HCursor, Json}
 import io.circe.parser.parse
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
+//import akka.http.scaladsl.unmarshalling.sse.EventStreamUnmarshalling._
+import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
+import io.circe.generic.auto._
+//import scala.concurrent.ExecutionContext.Implicits.global
 
 
 object Manager {
 
-  case class Meteo(description: String, humidity: Long, pressure: Long)
+  case class Meteo(description: String, temp:Long, humidity: Long, pressure: Long)
 
   sealed trait Command
 
-//  private case class GetActualMeteo(wH: ActorRef[Weather.Command]) extends Command
   private case object GetActualMeteo extends Command
 
+  private case object FetchTokenAuth0 extends Command
 
   /**
     * timers Key
@@ -41,6 +46,18 @@ object Manager {
 
   private case object FetchWeatherTimer
 
+  /**
+    *
+    * auth0
+    */
+  case class OauthPayload(
+                           client_id: String,
+                           client_secret: String,
+                           audience: String,
+                           grant_type: String
+                         )
+
+  case class ManagerAuth(access_token: String, expires_in: Long, token_type: String)
 
   def start():
   Behavior[Command] =
@@ -66,44 +83,54 @@ object Manager {
         FiniteDuration(1, "second"))
       timers.startPeriodicTimer(FetchWeatherTimer, GetActualMeteo, 10.second)
 
+      // asking someone requires a timeout and a scheduler
+      // if the timeout hits without response the ask is failed with a TimeoutException
+      implicit val timeout: Timeout = 5.seconds
+      implicit val scheduler: Scheduler = actorSystem.scheduler
+      // the response callback will be executed on this execution context
+      implicit val ec: ExecutionContextExecutor = actorSystem.dispatcher
+
       activeBehavior()
     })
 
 
   private def activeBehavior()( implicit
                                 weatherA  : ActorRef[Weather.Command],
-                                indicatorA: ActorRef[Indicator.Command]
+                                indicatorA: ActorRef[Indicator.Command],
+                                timeout: Timeout,
+                                scheduler: Scheduler,
+                                ec: ExecutionContextExecutor
   )
-  : Behavior[Command] =
-    Behaviors.receive { (ctx, msg) =>
+    : Behavior[Command] =
+  Behaviors.receive { (ctx, msg) =>
       ctx.system.log.info("manager switch active behavior ")
 
+
       msg match {
-//        case GetActualMeteo(askResponseTo) =>
+        //        case GetActualMeteo(askResponseTo) =>
         case GetActualMeteo =>
-          // asking someone requires a timeout and a scheduler
-          // if the timeout hits without response the ask is failed with a TimeoutException
-          implicit val timeout: Timeout = 5.seconds
-          implicit val scheduler = actorSystem.scheduler
-          // the response callback will be executed on this execution context
-          implicit val ec = actorSystem.dispatcher
 
           ctx.system.log.info("manager switch active GetActualMeteo ")
 
+          val uriM = s"http://api.openweathermap.org/data/2.5/weather?q=Montpellier,FR&lang=fr&units=metric&type=accurate&mode=json&appid=${Configs.openWeatherMapAppId}"
+
           val req = HttpRequest(
             method = HttpMethods.GET,
-            uri = s"http://api.openweathermap.org/data/2.5/weather?q=Montpellier,FR&lang=fr&appid=2d92405c57690e69814a77b80e2184e3"
+            uri = uriM
           )
 
-          val respFuture: Future[String] = for {
-            response <- Http().singleRequest(req)
-            content <- Unmarshal(response.entity).to[String]
+//          println(req)
+//          val respFuture: Future[String] = for {
+          val respFuture: Future[Json] = for {
+            httpResp <- Http().singleRequest(req)
+            content <- Unmarshal(httpResp.entity).to[Json]
 
           } yield content
 
           respFuture.onComplete {
             case Success(result) =>
-              val doc: HCursor = parse(result).getOrElse(Json.Null).hcursor
+//              val doc: HCursor = parse(result).getOrElse(Json.Null).hcursor
+              val doc: HCursor = result.hcursor
               val indicatorResult: Future[IndicatorC] = indicatorA ? (GetNewIndicator(doc, _))
               val weatherResult  : Future[WeatherC]   = weatherA ? (GetNewWeather(doc, _))
 
@@ -111,24 +138,105 @@ object Manager {
               val m = for {
                 w <- weatherResult
                 i <- indicatorResult
-              } yield (Meteo(w.description, i.humidity, i.pressure))
+              } yield (Meteo(w.description, i.temp, i.humidity, i.pressure))
 
               m.onComplete {
                 case Success(rst) ⇒
                   ctx.system.log.info(s"Yay, we got weather: $rst")
+                  ctx.self ! FetchTokenAuth0
                 case Failure(ex) ⇒
                   ctx.system.log.error(s"Boo! didn't get weather in time: ${ex.getMessage}")
                   None
               }
 
             case Failure(e) =>
-              ctx.system.log.error(s"Auth post failed: ${e.getMessage}")
+              ctx.system.log.error(s"Auth GET failed: ${e.getMessage}")
               None
           }
 
 
-      }
+        /**
+          * ========================================= Auth0 Token =========================================
+          */
+        case FetchTokenAuth0 =>
+          ctx.system.log.info("Fetch Manager Token ")
 
+          post[OauthPayload, ManagerAuth]("https://tabmo.eu.auth0.com/oauth/token", Configs.manager).onComplete {
+            case Success(result) =>
+              result match {
+                case Right(auth) =>
+                  ctx.system.log.info(s"$auth")
+                case Left(e) =>
+                  ctx.system.log.error(s"Could not auth: $e")
+                  None
+              }
+            case Failure(e) =>
+              ctx.system.log.error(s"Auth post failed: ${e.getMessage}")
+              None
+          }
+
+          /*val respPostAuth0Token = for {
+            entity <- Marshal(Configs.manager).to[RequestEntity]
+            httpResponse <- http.singleRequest(HttpRequest(
+              method = HttpMethods.POST,
+              uri = "https://daoudi-el.eu.auth0.com/oauth/token",
+              entity = entity
+            ))
+
+            resp <-
+              if (httpResponse.status.isSuccess()) {
+                ctx.system.log.info(s"http request : ${HttpRequest(
+                  method = HttpMethods.POST,
+                  uri = "https://daoudi-el.eu.auth0.com/oauth/token",
+                  entity = entity
+                )}")
+                ctx.system.log.info(s"http response status is success: ${httpResponse.status}")
+                Unmarshal(httpResponse.entity).to[ManagerAuth].map(Right(_))
+              }
+              else {
+                ctx.system.log.error(s"http response status failed")
+                Unmarshal(httpResponse.entity).to[Json].map(Left(_))
+              }
+          } yield resp
+
+          respPostAuth0Token.onComplete {
+            case Success(result) =>
+              result match {
+                case Right(auth) =>
+                  ctx.system.log.info(s"$auth")
+                case Left(e) =>
+                  ctx.system.log.error(s"Could not auth: $e")
+                  None
+              }
+            case Failure(e) =>
+              ctx.system.log.error(s"Auth post failed: ${e}")
+              None
+          }*/
+      }
       Behavior.same
     }
+
+  protected def httpPostRequest(url: String, messageEntity: MessageEntity): HttpRequest =
+    HttpRequest(method = HttpMethods.POST, uri = url, entity = messageEntity)
+
+  def post[E, R](url: String, e: E)(
+                                    implicit
+                                    enc: Encoder[E],
+                                    dec: Decoder[R],
+                                    ec: ExecutionContextExecutor
+  ): Future[Either[Json, R]] =
+
+    for {
+      entity <- Marshal(e).to[RequestEntity]
+      httpResponse <- http.singleRequest(httpPostRequest(url, entity))
+      respFuture <-
+      if (httpResponse.status.isSuccess()) {
+//        println(s"httpPostRequest : ${httpPostRequest(url, entity)}")
+        Unmarshal(httpResponse.entity).to[R].map(Right(_))
+      }
+      else {
+        Unmarshal(httpResponse.entity).to[Json].map(Left(_))
+      }
+    } yield respFuture
+
 }
