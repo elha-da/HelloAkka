@@ -13,7 +13,7 @@ class MyUntyped2 extends Actor {
       // we use the replyTo ActorRef in the message,
       // but could use sender() if needed and it was passed
       // as parameter to tell
-      println(s"$self got Ping from ${sender()}")
+      println(s"$self got PingF from ${sender()}")
       replyTo ! MyTyped2.Pong
   }
 }

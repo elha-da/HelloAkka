@@ -15,9 +15,11 @@ object ChatRoom {
 
   final case class PostMessage(message: String)
 
+  val behaviorChatRoom: Behavior[Command] = chatRoom(List.empty)
+
   private def chatRoom(sessions: List[ActorRef[SessionEvent]])
-  : Behavior[Command] =
-    Behaviors.receive[Command] { (ctx, msg) =>
+    : Behavior[Command] =
+  Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case GetSession(screenName, client) =>
           ctx.system.log.info(s"chatRoom - GetSession - context   : $ctx")
@@ -39,8 +41,8 @@ object ChatRoom {
     }
 
   val gabbler
-  : Behavior[SessionEvent]  =
-    Behaviors.receive[SessionEvent] { (context, msg) =>
+    : Behavior[SessionEvent]  =
+  Behaviors.receive[SessionEvent] { (context, msg) =>
       msg match {
         case SessionDenied(reason) =>
           context.system.log.info(s"chatRoom - SessionDenied: $reason")
@@ -54,11 +56,10 @@ object ChatRoom {
           context.system.log.info(s"chatRoom - MessagePosted  : $screenName | $message")
           context.system.log.info(s"message has been posted by '$screenName': $message")
           Behaviors.stopped
-        }
       }
+    }
 
 
-  val behaviorChatRoom: Behavior[Command] = chatRoom(List.empty)
 /*
   val root: Behavior[akka.NotUsed] =
     Behaviors.setup. { ctx =>

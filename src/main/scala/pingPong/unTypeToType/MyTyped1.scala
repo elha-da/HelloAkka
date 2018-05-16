@@ -14,7 +14,7 @@ object MyTyped1 {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case Ping(replyTo) =>
-          println(s"${ctx.self} got Ping from $replyTo")
+          println(s"${ctx.self} got PingF from $replyTo")
           replyTo ! Pong
           Behaviors.same
       }

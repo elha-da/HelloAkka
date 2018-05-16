@@ -63,7 +63,7 @@ object Parent {
         println("Worker {} is STOPPED", Behavior)
         Behaviors.same
       case (_, Terminated(`child`)) ⇒
-        println("Ping service has shut down")
+        println("PingF service has shut down")
         println(s"${Behaviors} | ${Behavior}")
         Behaviors.stopped
         System.exit(1)

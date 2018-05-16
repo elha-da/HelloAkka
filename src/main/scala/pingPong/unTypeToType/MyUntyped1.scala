@@ -23,7 +23,7 @@ class MyUntyped1 extends Actor {
 
   override def receive = {
     case MyTyped1.Pong =>
-      println(s"$self got Pong from ${sender()}")
+      println(s"$self got PongF from ${sender()}")
       // context.stop is an implicit extension method
       context.stop(second)
 

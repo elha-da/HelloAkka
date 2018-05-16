@@ -32,7 +32,7 @@ object MyTyped2 {
         msg match {
           case Pong =>
             // it's not possible to get the sender, that must be sent in message
-            println(s"${ctx.self} got Pong")
+            println(s"${ctx.self} got PongF")
             // context.stop is an implicit extension method
             ctx.stop(secondActRef)
             Behaviors.same

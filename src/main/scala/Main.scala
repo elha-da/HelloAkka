@@ -29,40 +29,42 @@ object Main extends App {
 
   implicit val actorSystem: ActorSystem = ActorSystem("hello-World")
   implicit val materializer: ActorMaterializer = ActorMaterializer()
+  implicit val http: HttpExt = Http(actorSystem)
 
-//  val workerHelloAkka: ActorRef[WorkerHelloAkka.Command] =
-//      actorSystem.spawn(WorkerHelloAkka.initBehavior, "worker-HelloAkka")
+/*
+  val workerHelloAkka = actorSystem.spawn(WorkerHelloAkka.initBehavior, "worker-HelloAkka")
+  workerHelloAkka.tell(HelloMsg("akka \" tell \""))
+  workerHelloAkka ! HelloMsg("akka \" ! \"")
+  workerHelloAkka ! HelloMsg("akka.")
+  workerHelloAkka ! CountMsg(99)
+*/
 
-//  workerHelloAkka.tell(HelloMsg("akka \" tell \""))
-//  workerHelloAkka ! HelloMsg("akka \" ! \"")
-//  workerHelloAkka ! HelloMsg("akka.")
-//  workerHelloAkka ! CountMsg(99)
-
-//  val myUntyped1 = actorSystem.actorOf(MyUntyped1.myProps(), "unTyped-Actor1")
+/*  val myUntyped1 = actorSystem.actorOf(MyUntyped1.myProps(), "unTyped-Actor1")*/
 
   // system.spawn is an implicit extension method
-//  val myTyped2 = actorSystem.spawn(MyTyped2.behaviorTyped, "typed-Actor2")
+/*  val myTyped2 = actorSystem.spawn(MyTyped2.behaviorTyped, "typed-Actor2")*/
 
 
-//  val immuRoundRobin: ActorRef[MyTyped2.Command] =
-//      actorSystem.spawn(ImmutableRoundRobin.roundRobinBehavior(4, MyTyped2.behaviorTyped), "immuRoundRobin-Actor")
+/*  val immuRoundRobin= actorSystem.spawn(ImmutableRoundRobin.roundRobinBehavior(4, MyTyped2.behaviorTyped), "immuRoundRobin-Actor")*/
 
 
-//  val parent: actor.ActorRef = actorSystem.actorOf(Props[Parent](), "child2")
-//  parent ! "pingit"
+/*
+  val parent: actor.ActorRef = actorSystem.actorOf(Props[Parent](), "child2")
+  parent ! "pingit"
+*/
 
-//  val childDep = actorSystem.spawn(Child.init, "child2")
-//  val parentDep = actorSystem.spawn(Parent.init(childDep), "parent2")
+/*  val parentDep = actorSystem.spawn(Parent.init(), "parent2")*/
 
-//  val parentDep = actorSystem.spawn(Parent.init, "parent2")
-//  println(s"parentDep : $parentDep")
-//  parentDep ! pingMsgParent("toto")
+/*
+  val parentDep = actorSystem.spawn(Parent.init, "parent2")
+  println(s"parentDep : $parentDep")
+  parentDep ! pingMsgParent("toto")
+*/
 
-//  val actChatRoom = actorSystem.spawn(ChatRoom.root, "chat-RoOm")
-//  val actChatRoom = actorSystem.spawn(ChatRoom.main, "ChatRoomDemo")
+/*  val actChatRoom = actorSystem.spawn(ChatRoom.main, "ChatRoomDemo")*/
 
 
-//  val actGuardian = actorSystem.spawn(Guardian.supervised(), "guardian-Test")
+  val actGuardian = actorSystem.spawn(Guardian.guardian(), "guardian-Test")
 
 /*
   // Create the 'greeter' actor
@@ -78,7 +80,7 @@ object Main extends App {
 
 //  val execActor = actorSystem.spawn(HelloAsk.start(), "helloAsk-actor")
 
-  implicit val http: HttpExt = Http(actorSystem)
-  val managerActor = actorSystem.spawn(Manager.start(), "Open-Weather")
+
+//  val managerActor = actorSystem.spawn(Manager.start(), "Open-Weather")
 
 }

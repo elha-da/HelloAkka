@@ -1,22 +1,37 @@
 package pingPong.withReceptionist
 
-import akka.actor.typed.{ActorRef, Behavior}
+import akka.actor.typed.{ActorRef, Behavior, DeathPactException, SupervisorStrategy}
 import akka.actor.typed.scaladsl.Behaviors
+
+import scala.concurrent.duration._
 
 object Second {
 
-  def pinger(pingService: ActorRef[First.Ping])
-  : Behavior[First.Pong.type] =
-    Behaviors.setup[First.Pong.type] { ctx =>
+  def supervised(pingService: ActorRef[First.PingF])
+  : Behavior[First.PongF.type] =
+    Behaviors.supervise(
+      pinger(pingService)
+    ).onFailure[RuntimeException] {
+//      println(s"=== Runtime Exception - S ?")
+//      SupervisorStrategy.stop
+      SupervisorStrategy.restartWithLimit(
+        maxNrOfRetries = 4,
+        withinTimeRange = 3.seconds
+      )
+    }
+
+  def pinger(pingService: ActorRef[First.PingF])
+  : Behavior[First.PongF.type] =
+    Behaviors.setup[First.PongF.type] { ctx =>
       ctx.system.log.info(s"pingService-Second : $pingService ! ${ctx.self}")
 
-      ctx.watch(pingService)
+//      throw new IllegalStateException
 
-      pingService ! First.Ping(ctx.self)
+      pingService ! First.PingF(ctx.self)
 
-      Behaviors.receive[First.Pong.type] { (contx, msg) =>
-        contx.system.log.info("I was ponged!!" + msg)
-        Behaviors.same
+      Behaviors.receive[First.PongF.type] { (context, msg) =>
+        context.system.log.info("I was ponged!! " + msg)
+        Behaviors.stopped
       }
     }
 

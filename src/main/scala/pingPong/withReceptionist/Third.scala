@@ -6,21 +6,24 @@ import akka.actor.typed.scaladsl.Behaviors
 
 object Third {
 
-  val pingServiceKeyThird = ServiceKey[Ping]("pingService-Third")
+  val pingServiceKeyThird = ServiceKey[Comm]("pingService-Third")
 
-  final case class Ping(replyTo: ActorRef[Pong.type])
-  final case object Pong
+  sealed trait Comm
+
+  final case class PingT(replyTo: ActorRef[PongTC]) extends Comm
+  final case object PongT
+  final case class PongTC(pong: PongT.type)
 
   val pingService
-  : Behavior[Ping] =
+  : Behavior[Comm] =
     Behaviors.setup { ctx =>
       ctx.system.receptionist ! Receptionist.Register(pingServiceKeyThird, ctx.self) //, ctx.system.deadLetters)
-      Behaviors.receive[Ping] { (contx, msg) =>
+      Behaviors.receive[Comm] { (contx, msg) =>
         msg match {
-          case Ping(replyTo) =>
+          case PingT(replyTo) =>
             contx.system.log.info(s"pingService-Third: $replyTo")
 //            println(s"pingService-Third : $replyTo")
-            replyTo ! Pong
+            replyTo ! PongTC(PongT)
             Behaviors.stopped
         }
       }
