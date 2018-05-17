@@ -20,7 +20,7 @@ import com.msgProtocols.ChatRoom
 import com.msgProtocols.ChatRoom._
 import firstSample.{Greeter, WhoToGreet}
 import pingPong.withReceptionist.First._
-import pingPong.withReceptionist.{First, Guardian, Second}
+import pingPong.withReceptionist.{First, Guardian, Second, Third}
 import reqResp.Dave
 
 object Main extends App {
@@ -64,7 +64,7 @@ object Main extends App {
 /*  val actChatRoom = actorSystem.spawn(ChatRoom.main, "ChatRoomDemo")*/
 
 
-  val actGuardian = actorSystem.spawn(Guardian.guardian(), "guardian-Test")
+/*  actorSystem.spawn(Guardian.guardian(None, None), "guardian-Test")*/
 
 /*
   // Create the 'greeter' actor
@@ -73,14 +73,14 @@ object Main extends App {
   greeter ! WhoToGreet("Akka")
 */
 
+
+  //  val dave: ActorRef[Dave.DaveMessage] = actorSystem.spawn(Dave.daveBehavior(), "dave")
+
+  //  val execActor = actorSystem.spawn(HelloAsk.start(), "helloAsk-actor")
+
+
+  //  val managerActor = actorSystem.spawn(Manager.start(), "Open-Weather")
+
   //shutdown actorsystem
-//  actorSystem.terminate()
-
-//  val dave: ActorRef[Dave.DaveMessage] = actorSystem.spawn(Dave.daveBehavior(), "dave")
-
-//  val execActor = actorSystem.spawn(HelloAsk.start(), "helloAsk-actor")
-
-
-//  val managerActor = actorSystem.spawn(Manager.start(), "Open-Weather")
-
+  //  actorSystem.terminate()
 }

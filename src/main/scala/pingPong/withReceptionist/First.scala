@@ -21,8 +21,7 @@ object First {
     Behaviors.supervise(
       preSupervised()
     ).onFailure[RuntimeException] {
-//      println(s"Runtime Exception - F ?")
-//            SupervisorStrategy.stop
+//      SupervisorStrategy.stop
       SupervisorStrategy.restartWithLimit(
         maxNrOfRetries = 4,
         withinTimeRange = 3.seconds

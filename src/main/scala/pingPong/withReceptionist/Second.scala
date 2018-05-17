@@ -7,19 +7,6 @@ import scala.concurrent.duration._
 
 object Second {
 
-  def supervised(pingService: ActorRef[First.PingF])
-  : Behavior[First.PongF.type] =
-    Behaviors.supervise(
-      pinger(pingService)
-    ).onFailure[RuntimeException] {
-//      println(s"=== Runtime Exception - S ?")
-//      SupervisorStrategy.stop
-      SupervisorStrategy.restartWithLimit(
-        maxNrOfRetries = 4,
-        withinTimeRange = 3.seconds
-      )
-    }
-
   def pinger(pingService: ActorRef[First.PingF])
   : Behavior[First.PongF.type] =
     Behaviors.setup[First.PongF.type] { ctx =>
