@@ -79,7 +79,8 @@ object Main extends App {
   //  val execActor = actorSystem.spawn(HelloAsk.start(), "helloAsk-actor")
 
 
-  //  val managerActor = actorSystem.spawn(Manager.start(), "Open-Weather")
+  // rub  : sbt run in terminal to import var from .envrc (direnv allow)
+  val managerActor = actorSystem.spawn(Manager.start(), "Open-Weather")
 
   //shutdown actorsystem
   //  actorSystem.terminate()
