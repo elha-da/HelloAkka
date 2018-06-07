@@ -2,7 +2,7 @@ name := "HelloAkka"
 
 version := "0.1"
 
-//scalaVersion := "2.12.4"
+//scalaVersion := "2.11.12"
 scalaVersion := "2.12.5"
 
 //val akkaVersion = "2.5.7"
@@ -27,7 +27,7 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-parser"  % circeV,
   "io.circe" %% "circe-optics"  % circeV,
   "com.iheart" %% "ficus" % "1.4.3",
-  "org.apache.httpcomponents" % "httpclient" % "4.5.5",
+//  "org.apache.httpcomponents" % "httpclient" % "4.5.5",
 //  "org.http4s" %% "http4s-core" % "0.1.0",
   "org.http4s" %% "http4s-blaze-client" % "0.18.12",
   "org.http4s" %% "http4s-client" % "0.18.12",

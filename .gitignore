@@ -1,4 +1,14 @@
 .idea/
+statsData/
+rawData/
+finalData/
+filteredData/
+target/
+data/*/
+spark-warehouse/
+.envrc
+
+
 
 *~
 
