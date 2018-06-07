@@ -1,6 +1,6 @@
 package example
 
-import OpenWeather.{HelloAsk, Manager}
+import OpenWeather.{ClientPostAuth0, HelloAsk, Manager}
 import akka.actor
 import akka.actor.typed.receptionist.Receptionist.{Find, Register}
 import akka.actor.{ActorRef, ActorSystem, Props}
@@ -32,6 +32,11 @@ object Main extends App {
   implicit val http: HttpExt = Http(actorSystem)
 
 /*
+  val greeter: actor.ActorRef = actorSystem.actorOf(Props[Greeter](), "greeter01")
+  greeter ! WhoToGreet("all")
+*/
+
+/*
   val workerHelloAkka = actorSystem.spawn(WorkerHelloAkka.initBehavior, "worker-HelloAkka")
   workerHelloAkka.tell(HelloMsg("akka \" tell \""))
   workerHelloAkka ! HelloMsg("akka \" ! \"")
@@ -39,13 +44,19 @@ object Main extends App {
   workerHelloAkka ! CountMsg(99)
 */
 
-/*  val myUntyped1 = actorSystem.actorOf(MyUntyped1.myProps(), "unTyped-Actor1")*/
+/*
+  val myUntyped1 = actorSystem.actorOf(MyUntyped1.myProps(), "unTyped-Actor1")
+*/
 
   // system.spawn is an implicit extension method
-/*  val myTyped2 = actorSystem.spawn(MyTyped2.behaviorTyped, "typed-Actor2")*/
+/*
+  val myTyped2 = actorSystem.spawn(MyTyped2.behaviorTyped, "typed-Actor2")
+*/
 
 
-/*  val immuRoundRobin= actorSystem.spawn(ImmutableRoundRobin.roundRobinBehavior(4, MyTyped2.behaviorTyped), "immuRoundRobin-Actor")*/
+/*
+  val immuRoundRobin= actorSystem.spawn(ImmutableRoundRobin.roundRobinBehavior(4, MyTyped2.behaviorTyped), "immuRoundRobin-Actor")
+*/
 
 
 /*
@@ -53,7 +64,9 @@ object Main extends App {
   parent ! "pingit"
 */
 
-/*  val parentDep = actorSystem.spawn(Parent.init(), "parent2")*/
+/*
+  val parentDep = actorSystem.spawn(Parent.init(), "parent2")
+*/
 
 /*
   val parentDep = actorSystem.spawn(Parent.init, "parent2")
@@ -61,10 +74,14 @@ object Main extends App {
   parentDep ! pingMsgParent("toto")
 */
 
-/*  val actChatRoom = actorSystem.spawn(ChatRoom.main, "ChatRoomDemo")*/
+/*
+  val actChatRoom = actorSystem.spawn(ChatRoom.main, "ChatRoomDemo")
+*/
 
 
-/*  actorSystem.spawn(Guardian.guardian(None, None), "guardian-Test")*/
+/*
+  actorSystem.spawn(Guardian.guardian(None, None), "guardian-Test")
+*/
 
 /*
   // Create the 'greeter' actor
@@ -74,14 +91,15 @@ object Main extends App {
 */
 
 
-  //  val dave: ActorRef[Dave.DaveMessage] = actorSystem.spawn(Dave.daveBehavior(), "dave")
+//  val dave: ActorRef[Dave.DaveMessage] = actorSystem.spawn(Dave.daveBehavior(), "dave")
 
-  //  val execActor = actorSystem.spawn(HelloAsk.start(), "helloAsk-actor")
+//  val execActor = actorSystem.spawn(HelloAsk.start(), "helloAsk-actor")
 
 
   // rub  : sbt run in terminal to import var from .envrc (direnv allow)
-  val managerActor = actorSystem.spawn(Manager.start(), "Open-Weather")
+//  val managerActor = actorSystem.spawn(Manager.start(), "Open-Weather")
 
+  ClientPostAuth0.managAuth
   //shutdown actorsystem
-  //  actorSystem.terminate()
+//  actorSystem.terminate()
 }

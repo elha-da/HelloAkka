@@ -8,15 +8,15 @@ import scala.concurrent.duration._
 import scala.concurrent.Await
 
 object HelloWorld {
-  final case class Greet(whom: String, replyTo: ActorRef[Greeted])
+  final case class Greet(whom: String) // replyTo: ActorRef[Greeted]
   final case class Greeted(whom: String)
 
   val greeter
   : Behavior[Greet] =
     Behaviors.receive[Greet] { (ctx, msg) =>
-      ctx.system.log.info(s"HelloWorld - greeter ! ")
-      println(s"Hello ${msg.whom}!")
-      msg.replyTo ! Greeted(msg.whom)
+//      ctx.system.log.info(s"HelloWorld - greeter ! ")
+      ctx.system.log.info(s"Hello ${msg.whom}!")
+//      msg.replyTo ! Greeted(msg.whom)
       Behaviors.same
   }
 }
