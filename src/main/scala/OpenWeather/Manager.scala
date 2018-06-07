@@ -62,7 +62,7 @@ object Manager {
   def start():
   Behavior[Command] =
     Behaviors.setup { ctx =>
-      ctx.system.log.info("startUp managerRef")
+      ctx.system.log.info("startUp manager")
       implicit val weatherActor: ActorRef[Weather.Command] = ctx.spawn(Weather.supervised(), s"weather") //${UUID.randomUUID()}")
       implicit val indicatorActor: ActorRef[Indicator.Command] = ctx.spawn(Indicator.supervised(), s"indicator") //${UUID.randomUUID()}")
 
@@ -161,7 +161,8 @@ object Manager {
         case FetchTokenAuth0 =>
           ctx.system.log.info("Fetch Manager Token ")
 
-          post[OauthPayload, ManagerAuth]("https://tabmo.eu.auth0.com/oauth/token", Configs.manager).onComplete {
+
+          post[OauthPayload, ManagerAuth]("https://daoudi-el.eu.auth0.com/oauth/token", Configs.manager).onComplete {
             case Success(result) =>
               result match {
                 case Right(auth) =>
@@ -224,14 +225,14 @@ object Manager {
                                     enc: Encoder[E],
                                     dec: Decoder[R],
                                     ec: ExecutionContextExecutor
-  ): Future[Either[Json, R]] =
+  ): Future[Either[Json, R]] = {
 
     for {
       entity <- Marshal(e).to[RequestEntity]
       httpResponse <- http.singleRequest(httpPostRequest(url, entity))
       respFuture <-
       if (httpResponse.status.isSuccess()) {
-//        println(s"httpPostRequest : ${httpPostRequest(url, entity)}")
+        //        println(s"httpPostRequest : ${httpPostRequest(url, entity)}")
         Unmarshal(httpResponse.entity).to[R].map(Right(_))
       }
       else {
@@ -239,4 +240,54 @@ object Manager {
       }
     } yield respFuture
 
+  }
+
+  def get(url: String,
+          connectTimeout: Int = 5000,
+          readTimeout: Int = 5000,
+          requestMethod: String = "GET") =
+  {
+    import java.net.{URL, HttpURLConnection}
+    val connection = (new URL(url)).openConnection.asInstanceOf[HttpURLConnection]
+    connection.setConnectTimeout(connectTimeout)
+    connection.setReadTimeout(readTimeout)
+    connection.setRequestMethod(requestMethod)
+    val inputStream = connection.getInputStream
+    val content = scala.io.Source.fromInputStream(inputStream).mkString
+    if (inputStream != null) inputStream.close
+    content
+  }
+
+//  import java.io._
+//  import org.apache.commons._
+//  import org.apache.http._
+//  import org.apache.http.client._
+//  import org.apache.http.client.methods.HttpPost
+//  import org.apache.http.impl.client.DefaultHttpClient
+//  import java.util.ArrayList
+//  import org.apache.http.message.BasicNameValuePair
+//  import org.apache.http.client.entity.UrlEncodedFormEntity
+//
+//  def postHttpApache(url: String) = {
+////    val url = "http://localhost:8080/posttest";
+//
+//    val post = new HttpPost(url)
+//    post.addHeader("appid","YahooDemo")
+//    post.addHeader("query","umbrella")
+//    post.addHeader("results","10")
+//
+//    val client = new DefaultHttpClient
+//    val params = client.getParams
+//    params.setParameter("foo", "bar")
+//
+//    val nameValuePairs = new ArrayList[NameValuePair](1)
+//    nameValuePairs.add(new BasicNameValuePair("registrationid", "123456789"))
+//    nameValuePairs.add(new BasicNameValuePair("accountType", "GOOGLE"))
+//    post.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+//
+//    // send the post request
+//    val response = client.execute(post)
+//    println("--- HEADERS ---")
+//    response.getAllHeaders.foreach(arg => println(arg))
+//  }
 }
